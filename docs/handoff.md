@@ -272,9 +272,10 @@ Nothing below may be built on until you decide. ★ = affects user experience.
    plain words (needs an ADR); caching Playwright's Chromium in CI (`docs/todo-claude.md`).
 
 ## Session log
-- 2026-10-28: end of session. Everything merged and pushed; PR #41 (outside contributor) left for the PM. Removed locally: scratch logs and spikes, build output,
-  old copies of released images and merged local branches (all are on GitHub). Three lessons added (Glance's
-  fade-in, hidden columns on a phone, `:has()` rules in pairs); `docs/todo-claude.md` brought up to date.
+- 2026-10-28: end of session. Everything merged and pushed; PR #41 (outside contributor) left for the PM. Removed
+  locally: scratch logs and spikes, build output, old copies of released images and merged local branches (all are
+  on GitHub). Three lessons added (Glance's fade-in, hidden columns on a phone, `:has()` rules in pairs);
+  `docs/todo-claude.md` brought up to date.
 - 2026-10-28: v1.5.0 released at the PM's request (compact widgets, PR #38; release PR #39): `:1.5.0` and `:latest`
   published from main; `test/all-in-one.sh` passed on the published image, and the switch and its CSS are in it. The
   Community Apps template is unchanged (it follows `:latest`).

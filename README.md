@@ -126,6 +126,7 @@ Open `http://<server>:8090/` for the editor; the dashboard is on `http://<server
 | `/var/run/docker.sock` (read only, optional) | For the Docker containers widget, and so the editor can list containers. The editor itself never gets the socket: it asks a gate that only lets it list |
 | `/photos` (read only, optional) | A folder of photos for backgrounds |
 | `PUID`, `PGID` | The user and group the editor runs as and writes files as (Unraid: `99` and `100`) |
+| `HOST` (optional) | The address the editor listens on: `0.0.0.0`, IPv4 only, unless set. Set `::` when the container's network has IPv6, or browsers that connect over IPv6 get an empty reply |
 | Your own variables | Anything your `${VARIABLES}` need. They go to Glance, not to the editor. A `.env` next to `glance.yml` works too |
 
 ### First run

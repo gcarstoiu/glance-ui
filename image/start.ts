@@ -35,7 +35,7 @@ const paths = {
 
 // Settings the editor gets. Nothing else from the container's environment reaches it: variables you add for your
 // ${VAR}s are for Glance, which substitutes them (the editor stores placeholders literally and never needs them).
-const PASS_TO_EDITOR = ["PATH", "TZ", "NODE_ENV", "GLANCE_VERSION", "BODY_SIZE_LIMIT", "ORIGIN",
+const PASS_TO_EDITOR = ["PATH", "TZ", "NODE_ENV", "GLANCE_VERSION", "BODY_SIZE_LIMIT", "HOST", "ORIGIN",
   "PROTOCOL_HEADER", "HOST_HEADER", "PORT_HEADER", "ADDRESS_HEADER", "XFF_DEPTH"];
 
 function log(msg: string): void {

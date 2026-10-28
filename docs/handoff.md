@@ -77,6 +77,11 @@ Last updated: 2026-10-28 (end of session: v1.5.0 released, ADR-0034 compact widg
 ## Needs user decision
 Nothing below may be built on until you decide. ★ = affects user experience.
 
+- **PR #41, from an outside contributor (opened 2026-10-28):** passes `HOST` to the editor, so it can listen on IPv6
+  with `HOST=::` (one line in `image/start.ts`, one row in the README's settings table; unset, nothing changes).
+  GitHub holds its CI until you approve the run. Merge, ask for changes, or have Claude review and test it first; its
+  release notes line would need your approval. Claude has not commented on it.
+
 - ★ **D-62 reading (confirm, or say otherwise):** in a slideshow, every image of a Pixabay set is a slide, so the
   set's daily/weekly/monthly switch only matters when the background is a single image (ADR-0022). Built this way;
   the alternative (a slideshow showing part of the set and swapping) is a small change.
@@ -267,7 +272,7 @@ Nothing below may be built on until you decide. ★ = affects user experience.
    plain words (needs an ADR); caching Playwright's Chromium in CI (`docs/todo-claude.md`).
 
 ## Session log
-- 2026-10-28: end of session. Everything merged and pushed. Removed locally: scratch logs and spikes, build output,
+- 2026-10-28: end of session. Everything merged and pushed; PR #41 (outside contributor) left for the PM. Removed locally: scratch logs and spikes, build output,
   old copies of released images and merged local branches (all are on GitHub). Three lessons added (Glance's
   fade-in, hidden columns on a phone, `:has()` rules in pairs); `docs/todo-claude.md` brought up to date.
 - 2026-10-28: v1.5.0 released at the PM's request (compact widgets, PR #38; release PR #39): `:1.5.0` and `:latest`

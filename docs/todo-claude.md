@@ -8,8 +8,8 @@ Claude's own backlog. Items that need the PM go in [todo-user.md](todo-user.md) 
 - [ ] Add the live host details to Phase 7 docs once provided (keep addresses out of the public repo).
 
 ## Phase 11
-- [ ] Before the Community Apps submission: a CA template repository layout (`ca_profile.xml`, icon, templates) per
-      ca.unraid.net/submit/help/builders, and run their Validate and Scan on the rendered template.
+- [x] Before the Community Apps submission: a CA template repository layout (`ca_profile.xml`, icon, templates) per
+      ca.unraid.net/submit/help/builders: `gcarstoiu/unraid-templates`. Validate and Scan run when the PM submits it.
 - [ ] After the PM's first Unraid install: record what the Docker tab showed (icon, WebUI, update check) in ADR-0024.
 
 ## Phase 1 (done in the Phase 1 PR; kept for the record)
@@ -23,13 +23,18 @@ Claude's own backlog. Items that need the PM go in [todo-user.md](todo-user.md) 
 
 ## Licensing (ADR-0013)
 - [x] Phase 1: add a dependency-license check to CI (GPL-3.0-compatible only): `npm run licenses`.
-- [ ] Phase 7: the published editor image ships Glance's AGPL license text plus a pointer to the pinned source commit.
+- [x] Phase 7: the published editor image ships Glance's AGPL license text plus a pointer to the pinned source commit
+      (Phase 11: `/usr/share/doc/glance/`, checked in CI and the release workflow).
 
 ## Phase 11 (deployment) notes from Phase 3
-- [ ] The editor runs as uid 1000 (`node`); on Unraid the config dir and data dir ownership (often 99:100) must allow it to write. Decide user/permissions in the deployment ADR.
-- [ ] `GLANCE_URL` must point at Glance as reachable from the editor container (same Docker network).
+- [x] The editor runs as uid 1000 (`node`); on Unraid the config dir and data dir ownership (often 99:100) must allow it to write. Decide user/permissions in the deployment ADR.
+      ADR-0024: the editor runs as PUID:PGID, 99:100 by default (`image/start.ts`).
+- [x] `GLANCE_URL` must point at Glance as reachable from the editor container (same Docker network).
+      One container (ADR-0024): `http://127.0.0.1:8080/` (`image/start.ts`).
 
 ## Known gaps in the Phase 0 harness
 - [ ] The docker-containers precedence test needs a socket proxy plus labelled throwaway containers (Phase 6).
 - [ ] The "reload clears cache" and "env-var change needs restart" claims are not tested (docs only).
 - [ ] CI pulls the Glance image without a cache. Consider caching if it becomes slow.
+- [ ] CI installs Playwright's Chromium on every run; once (2026-10-26) that took 13 minutes and main's job hit its
+      15-minute limit. Cache the browser if it happens again.

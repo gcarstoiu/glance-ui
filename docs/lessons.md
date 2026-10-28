@@ -291,3 +291,13 @@ overwrites labels with map values. **Do:** treat source reading as a hypothesis 
   as "not set".
 - The editor's build (Docker build stage) only sees what the Dockerfile copies: importing `image/dotenv.ts` into the
   server needed `COPY image/dotenv.ts image/` there, though the local build worked.
+
+## Compact widgets (2026-10-28, Glance v0.8.6 source and tests; ADR-0034)
+- Glance fades the page in for 0.3 s once it has filled it (`site.css` 14-17 and 154-158). A screenshot or a
+  measurement taken right after `.content-ready` catches the widgets half transparent. **Do:** wait until
+  `document.getAnimations()` have finished (`settled()` in `test/e2e/look.spec.ts`).
+- Up to 1190 px wide, Glance shows only the column picked in its bottom bar and hides the others (`mobile.css` 15-17
+  and 89-91). On a phone a widget in a hidden column is never visible, so waiting for it to be visible times out.
+  **Do:** wait for `.content-ready` to be attached.
+- CSS built on `:has()` as a pair of rules: a browser without `:has()` drops only the rule that uses it and still
+  applies the other one. **Do:** put both inside `@supports selector(:has(*))`.

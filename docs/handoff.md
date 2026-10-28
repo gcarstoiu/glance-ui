@@ -1,7 +1,7 @@
 # Handoff
 
 The single place to see where the project stands. Updated at the end of every work session and every PR.
-Last updated: 2026-10-28 (v1.5.0 released: ADR-0034, compact widgets).
+Last updated: 2026-10-28 (end of session: v1.5.0 released, ADR-0034 compact widgets; local clean-up).
 
 ## Current state
 - **Released:** **v1.5.0** is `:latest` (`ghcr.io/gcarstoiu/glance-editor`, public). Earlier: v1.0.0, v1.0.1, v1.1.0, v1.2.0,
@@ -65,6 +65,10 @@ Last updated: 2026-10-28 (v1.5.0 released: ADR-0034, compact widgets).
   or PRs; commit trailer `Co-Authored-By` only, no session links in PR bodies (the PM's rule). Exception: the owner's
   GitHub username in the README's install addresses. The PM once pasted a real account ID and domain in chat; they
   must never be written anywhere.
+- Local working files (ignored, on the dev machine only): `.spike/` keeps the Glance source at the pinned commit
+  (`glance-src`), the community widgets at theirs (`cw-src`), the test caches (Glance binary, Playwright's Chromium)
+  and `.spike/run`, which runs a command with its home, temp folder and caches inside `.spike/`. Without them, the
+  tests download the binary and the browser again. Only `main` is checked out locally; every branch is on GitHub.
 - Stale branches (harmless): `fix/ca-certificates` (PR #21 closed; its commit is in main via #22) and
   `phase-11/findings-2` (its last two commits are in main as cherry-picks via #22). Many merged branches remain on
   the remote; the repo setting "automatically delete head branches" is the PM's (todo-user).
@@ -259,8 +263,13 @@ Nothing below may be built on until you decide. ★ = affects user experience.
    commit (run `scripts/community-widgets.ts`, fix what it reports in `community-widgets.settings.yml`, give `origin`
    to each address field whose service can't run under a sub-path (ADR-0032), run `test/community-live.sh` on the
    image, review, PR); a newer Glance pin (ADR-0006) when one is released.
+7. Offered to the PM, not asked for yet: a README how-to for the Docker proxy on another server; Docker errors in
+   plain words (needs an ADR); caching Playwright's Chromium in CI (`docs/todo-claude.md`).
 
 ## Session log
+- 2026-10-28: end of session. Everything merged and pushed. Removed locally: scratch logs and spikes, build output,
+  old copies of released images and merged local branches (all are on GitHub). Three lessons added (Glance's
+  fade-in, hidden columns on a phone, `:has()` rules in pairs); `docs/todo-claude.md` brought up to date.
 - 2026-10-28: v1.5.0 released at the PM's request (compact widgets, PR #38; release PR #39): `:1.5.0` and `:latest`
   published from main; `test/all-in-one.sh` passed on the published image, and the switch and its CSS are in it. The
   Community Apps template is unchanged (it follows `:latest`).

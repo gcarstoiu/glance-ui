@@ -2,7 +2,7 @@
 // widgets into and out of a group; Move to… (a tap on a grip, or the card's move buttons); pages in the rail; slides.
 // Mouse drag at desktop width; a finger (real touch events) at 390 px; Undo; axe and 44 px targets on the new controls.
 import type { CDPSession, Locator, Page } from "@playwright/test";
-import { expect, expectAccessible, expectTargets, fixture, isPhone, test } from "./fixtures.ts";
+import { dropPoint, expect, expectAccessible, expectTargets, fixture, followTarget, isPhone, mouseDrag, test } from "./fixtures.ts";
 import { shot } from "./shots.ts";
 
 async function importSeed(page: Page, url: string) {
@@ -16,17 +16,7 @@ const inspector = (page: Page) => page.getByRole("complementary", { name: "Widge
 const card = (page: Page, name: string) => page.locator(".wcard", { has: page.getByRole("button", { name: new RegExp(`^${name}, `) }) });
 const openCard = (page: Page, name: string) => card(page, name).getByRole("button", { name: new RegExp(`^${name}, `) }).click();
 
-/** Drag a grip with the mouse and drop it on `target` (found once the drag has started), near its top. */
-async function mouseDrag(page: Page, grip: Locator, target: () => Locator) {
-  const g = (await grip.boundingBox())!;
-  await page.mouse.move(g.x + g.width / 2, g.y + g.height / 2);
-  await page.mouse.down();
-  await page.mouse.move(g.x + g.width / 2 + 12, g.y + g.height / 2 + 12, { steps: 3 });
-  const t = (await target().boundingBox())!;
-  await page.mouse.move(t.x + t.width / 2, t.y + Math.min(t.height / 2, 8), { steps: 8 });
-  await page.mouse.up();
-}
-/** The same with a finger: real touch events through Chromium's DevTools protocol (they become pointer events). */
+/** A drag with a finger: real touch events through Chromium's DevTools protocol (they become pointer events). */
 async function touchDrag(page: Page, grip: Locator, target: () => Locator) {
   const cdp: CDPSession = await page.context().newCDPSession(page);
   const touch = (type: string, x?: number, y?: number) => cdp.send("Input.dispatchTouchEvent", { type, touchPoints: x === undefined ? [] : [{ x, y: y! }] } as never);
@@ -34,9 +24,9 @@ async function touchDrag(page: Page, grip: Locator, target: () => Locator) {
   const a = { x: g.x + g.width / 2, y: g.y + g.height / 2 };
   await touch("touchStart", a.x, a.y);
   for (let i = 1; i <= 3; i++) await touch("touchMove", a.x + 4 * i, a.y + 4 * i);
-  const t = (await target().boundingBox())!;
-  const b = { x: t.x + t.width / 2, y: t.y + Math.min(t.height / 2, 8) };
+  const b = dropPoint((await target().boundingBox())!);
   for (let i = 1; i <= 8; i++) await touch("touchMove", a.x + ((b.x - a.x) * i) / 8, a.y + ((b.y - a.y) * i) / 8);
+  await followTarget(page, target, (x, y) => touch("touchMove", x, y));
   await touch("touchEnd");
   await cdp.detach();
 }

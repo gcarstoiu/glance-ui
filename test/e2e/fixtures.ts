@@ -6,7 +6,7 @@ import { createServer as createHttpServer, type Server } from "node:http";
 import { createServer, type AddressInfo } from "node:net";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
-import { test as base, expect, type Page } from "@playwright/test";
+import { test as base, expect, type Locator, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import { startIconSources, type IconSourcesStandIn } from "../support/icon-sources.ts";
 import { startPixabay, type PixabayStandIn } from "../support/pixabay.ts";
@@ -245,6 +245,34 @@ export { expect };
 
 /** True when the page shows the phone layout (under 760 px of editor width). */
 export const isPhone = (page: Page) => (page.viewportSize()?.width ?? 1280) < 760;
+
+/** Where a drag drops on a target: its middle, near its top. */
+export const dropPoint = (t: { x: number; y: number; width: number; height: number }) => ({ x: t.x + t.width / 2, y: t.y + Math.min(t.height / 2, 8) });
+/** Keeps the pointer on the target until the target stops moving. Near the window's edge the editor scrolls while
+ *  dragging (`EDGE` in drag.ts), so a target there moves away from a pointer that waits, and a slow machine waits
+ *  longer before the release (CI, 2026-11-03). */
+export async function followTarget(page: Page, target: () => Locator, moveTo: (x: number, y: number) => Promise<unknown>) {
+  for (let i = 0; i < 60; i++) {
+    const t = (await target().boundingBox())!;
+    const p = dropPoint(t);
+    await moveTo(p.x, p.y);
+    await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+    const now = (await target().boundingBox())!;
+    if (now.x === t.x && now.y === t.y) return;
+  }
+  throw new Error("the drop target kept moving");
+}
+/** Drag a grip with the mouse and drop it on `target` (found once the drag has started), near its top. */
+export async function mouseDrag(page: Page, grip: Locator, target: () => Locator) {
+  const g = (await grip.boundingBox())!;
+  await page.mouse.move(g.x + g.width / 2, g.y + g.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(g.x + g.width / 2 + 12, g.y + g.height / 2 + 12, { steps: 3 });
+  const t = dropPoint((await target().boundingBox())!);
+  await page.mouse.move(t.x, t.y, { steps: 8 });
+  await followTarget(page, target, (x, y) => page.mouse.move(x, y));
+  await page.mouse.up();
+}
 
 /** WCAG 2.1 A and AA checks on what is on screen now (plan v2 Phase 5: axe check in CI). */
 export async function expectAccessible(page: Page, what: string, opts: { exclude?: string } = {}) {

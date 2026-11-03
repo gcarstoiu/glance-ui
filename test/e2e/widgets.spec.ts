@@ -7,7 +7,7 @@ import { createServer, type Server } from "node:http";
 import type { AddressInfo } from "node:net";
 import { dirname, join } from "node:path";
 import type { Locator, Page } from "@playwright/test";
-import { expect, expectAccessible, expectTargets, fixture, isPhone, test } from "./fixtures.ts";
+import { expect, expectAccessible, expectTargets, fixture, isPhone, mouseDrag, test } from "./fixtures.ts";
 import { shot } from "./shots.ts";
 
 async function importSeed(page: Page, url: string) {
@@ -43,15 +43,7 @@ async function closeInspector(page: Page) {
 /** The end of a column's (or the head strip's) list, shown while a widget is dragged (client/drag.ts list keys). */
 const endZone = (page: Page, column: number | "head") => page.locator(`[data-drop-end][data-drop-list^="w|"][data-drop-list$="|${column}|"]`);
 /** Drag a grip with the mouse (desktop, D-15) and drop it on `target` (found once the drag has started). */
-async function drag(page: Page, grip: Locator, target: () => Locator) {
-  const g = (await grip.boundingBox())!;
-  await page.mouse.move(g.x + g.width / 2, g.y + g.height / 2);
-  await page.mouse.down();
-  await page.mouse.move(g.x + g.width / 2 + 12, g.y + g.height / 2 + 12, { steps: 3 });
-  const t = (await target().boundingBox())!;
-  await page.mouse.move(t.x + t.width / 2, t.y + Math.min(t.height / 2, 8), { steps: 8 });
-  await page.mouse.up();
-}
+const drag = mouseDrag;
 
 test.describe("Flow 3: add and configure a widget", () => {
   test.use({ opts: { seed: fixture("home.yml"), glance: true } });

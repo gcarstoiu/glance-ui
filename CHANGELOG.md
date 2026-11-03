@@ -4,6 +4,8 @@ All notable changes are recorded here. The format follows Keep a Changelog; vers
 (process: docs/adr/0007-versioning-and-release-notes.md, accepted).
 
 ## [Unreleased]
+
+## [1.5.1] - 2026-11-03
 ### Fixed
 - **The editor answers over IPv6** when the container's network has IPv6, as the dashboard does. Before, browsers
   that connected over IPv6 got an empty reply.

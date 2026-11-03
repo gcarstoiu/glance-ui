@@ -4,6 +4,10 @@ All notable changes are recorded here. The format follows Keep a Changelog; vers
 (process: docs/adr/0007-versioning-and-release-notes.md, accepted).
 
 ## [Unreleased]
+### Fixed
+- **The editor answers over IPv6** when the container's network has IPv6, as the dashboard does. Before, browsers
+  that connected over IPv6 got an empty reply.
+- **A `PORT` variable**, in the container or in `.env`, now reaches the dashboard and no longer moves the editor.
 
 ## [1.5.0] - 2026-10-28
 ### Added

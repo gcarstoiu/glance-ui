@@ -15,13 +15,14 @@ import { join } from "node:path";
 import { createInterface } from "node:readline";
 import { dockerGate } from "./docker-gate.ts";
 import { parseDotenv } from "./dotenv.ts";
+import { editorListenAddress } from "./listen.ts";
 
 const DATA = process.env.DATA_DIR || "/data";
 const GLANCE = process.env.GLANCE_BIN || "/usr/local/bin/glance";
 const SOCKET = "/var/run/docker.sock";
 const PREVIEW_PORT = 47801; // loopback only: the editor serves the preview under /preview (ADR-0019)
 const GATE_PORT = 47802; // loopback only
-const EDITOR_PORT = process.env.PORT || "3000";
+const EDITOR_PORT = "3000"; // always: the health check and every port mapping point here (ADR-0035)
 const uid = Number(process.env.PUID ?? 99);
 const gid = Number(process.env.PGID ?? 100);
 
@@ -35,7 +36,8 @@ const paths = {
 
 // Settings the editor gets. Nothing else from the container's environment reaches it: variables you add for your
 // ${VAR}s are for Glance, which substitutes them (the editor stores placeholders literally and never needs them).
-const PASS_TO_EDITOR = ["PATH", "TZ", "NODE_ENV", "GLANCE_VERSION", "BODY_SIZE_LIMIT", "HOST", "ORIGIN",
+// HOST and PORT are set below, so a variable of yours by either name goes to Glance only (ADR-0035).
+const PASS_TO_EDITOR = ["PATH", "TZ", "NODE_ENV", "GLANCE_VERSION", "BODY_SIZE_LIMIT", "ORIGIN",
   "PROTOCOL_HEADER", "HOST_HEADER", "PORT_HEADER", "ADDRESS_HEADER", "XFF_DEPTH"];
 
 function log(msg: string): void {
@@ -135,6 +137,8 @@ async function main(): Promise<void> {
   dockerGate(SOCKET).listen(GATE_PORT, "127.0.0.1");
   log(existsSync(SOCKET) ? "Docker socket found: the editor can list containers (read only)" : "no Docker socket mounted: Docker widgets and the Containers section won't list anything");
 
+  const host = await editorListenAddress();
+  log(host === "::" ? "the editor listens on IPv4 and IPv6" : "no IPv6 in this container: the editor listens on IPv4 only");
   const editorEnv: NodeJS.ProcessEnv = Object.fromEntries(PASS_TO_EDITOR.filter((k) => process.env[k] !== undefined).map((k) => [k, process.env[k]]));
   // The names (never the values) of the container's own variables, so the editor can tell which ${VAR}s have no value
   // (ADR-0025). .env is read by the editor itself, as it changes (ADR-0029).
@@ -142,7 +146,7 @@ async function main(): Promise<void> {
   // Photo folders for backgrounds (D-59), /photos unless set: only those actually mounted, so none listed if empty.
   editorEnv.SERVER_FOLDERS = (process.env.SERVER_FOLDERS ?? "/photos").split(",").map((x) => x.trim()).filter((x) => x && existsSync(x)).join(",");
   Object.assign(editorEnv, {
-    HOME: "/tmp", PORT: EDITOR_PORT, GLANCE_BIN: GLANCE,
+    HOME: "/tmp", HOST: host, PORT: EDITOR_PORT, GLANCE_BIN: GLANCE,
     GLANCE_CONFIG: paths.config, EDITOR_DATA_DIR: paths.editor,
     GLANCE_URL: "http://127.0.0.1:8080/",
     PREVIEW_CONFIG: paths.preview, PREVIEW_GLANCE_URL: `http://127.0.0.1:${PREVIEW_PORT}/`,

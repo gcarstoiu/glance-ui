@@ -1,12 +1,13 @@
 # Handoff
 
 The single place to see where the project stands. Updated at the end of every work session and every PR.
-Last updated: 2026-10-28 (end of session: v1.5.0 released, ADR-0034 compact widgets; local clean-up).
+Last updated: 2026-11-03 (PR #41 checked; ADR-0035, the editor on IPv4 and IPv6, built; not released yet).
 
 ## Current state
 - **Released:** **v1.5.0** is `:latest` (`ghcr.io/gcarstoiu/glance-editor`, public). Earlier: v1.0.0, v1.0.1, v1.1.0, v1.2.0,
   v1.3.0, v1.4.0, v1.4.1
-  (and test releases v1.0.0-rc.1 to rc.6, kept as pre-releases). Every release page shows its CHANGELOG section;
+  (and test releases v1.0.0-rc.1 to rc.6, kept as pre-releases). **Unreleased on main:** ADR-0035 (with PR #41),
+  notes drafted under Unreleased in CHANGELOG.md for the PM's approval. Every release page shows its CHANGELOG section;
   every published image passed `test/all-in-one.sh` (including a real HTTPS weather fetch inside the container).
 - **v1.0.0 caveat:** PR #18 was merged before its last two commits were pushed, so v1.0.0 lacked "another server's
   containers" and "Fill in icons and links" although its notes describe them. v1.0.1 added them (its notes say so).
@@ -44,6 +45,8 @@ Last updated: 2026-10-28 (end of session: v1.5.0 released, ADR-0034 compact widg
   159 of 165 can be added (6 refused with the reason). Live check: `test/community-live.sh`.
 - ADR-0031 drag and drop: links and groups between groups and Bookmarks widgets, widgets into and out of groups and
   split columns, pages, slides; a finger on the grip drags too; Move to… for touch and keyboard.
+- ADR-0035 (unreleased): the editor listens on IPv4 and IPv6 by itself (IPv4 only without IPv6); `HOST` and `PORT`
+  are the user's, for Glance; the editor always listens on 3000 inside the container. Replaces PR #41's `HOST` setting.
 - ADR-0034 (v1.5.0): compact widgets, a switch on the Theme screen (off by default): each title inside its box, so stacked
   widgets are as far apart as columns; widgets without a box keep their titles above.
 - ADR-0033 (v1.4.1): community widgets marked early alpha in Add widget → Community, a community widget's settings, the Unraid
@@ -77,17 +80,17 @@ Last updated: 2026-10-28 (end of session: v1.5.0 released, ADR-0034 compact widg
 ## Needs user decision
 Nothing below may be built on until you decide. ★ = affects user experience.
 
-- **PR #41, from an outside contributor (opened 2026-10-28):** passes `HOST` to the editor, so it can listen on IPv6
-  with `HOST=::` (one line in `image/start.ts`, one row in the README's settings table; unset, nothing changes).
-  GitHub holds its CI until you approve the run. Merge, ask for changes, or have Claude review and test it first; its
-  release notes line would need your approval. Claude has not commented on it.
-
 - ★ **D-62 reading (confirm, or say otherwise):** in a slideshow, every image of a Pixabay set is a slide, so the
   set's daily/weekly/monthly switch only matters when the background is a single image (ADR-0022). Built this way;
   the alternative (a slideshow showing part of the set and swapping) is a small change.
 - ★ **ADR-0025 leftover:** no assets file list in the editor yet (say if wanted).
 - ★ **ADR-0026 leftover:** Glance's two default themes stay in the dashboard's theme picker (not answered;
   recommended; hiding them needs CSS).
+
+## Decided on 2026-11-03 (via chat)
+| ADR | Outcome |
+| --- | ------- |
+| [0035](adr/0035-editor-listens-on-ipv4-and-ipv6.md) | **The editor listens on IPv4 and IPv6 by itself** (option B of three), after PR #41 (merged by the PM) was found to stop the editor when a user's own variable is named `HOST`; `PORT` fixed too |
 
 ## Decided on 2026-10-28 (via chat)
 | ADR | Outcome |
@@ -254,24 +257,30 @@ Nothing below may be built on until you decide. ★ = affects user experience.
 - The real-binary tests caught a validator bug that my own model-based tests missed. Both kinds of test are kept.
 
 ## Next steps
-1. You: submit `gcarstoiu/unraid-templates` at https://ca.unraid.net/submit/new; paste any Validate/Scan findings to
+1. You: approve the Unreleased notes in CHANGELOG.md (IPv6, `PORT`) and say when to release them (v1.5.1 suggested:
+   two fixes).
+2. You: submit `gcarstoiu/unraid-templates` at https://ca.unraid.net/submit/new; paste any Validate/Scan findings to
    Claude.
-2. You: on Unraid, Docker → Check for Updates → apply the update (v1.5.0); Theme → Dashboard look → Compact widgets,
+3. You: on Unraid, Docker → Check for Updates → apply the update (v1.5.0); Theme → Dashboard look → Compact widgets,
    Save, and look at the dashboard; try a community widget's fields, More options and its settings panel, and drag a
    bookmark link to another group; report what you see.
-3. You: open the Uptime Kuma widget's settings (v1.4.0 and later): the Service line says whether Uptime Kuma answered, or why
+4. You: open the Uptime Kuma widget's settings (v1.4.0 and later): the Service line says whether Uptime Kuma answered, or why
    not. The address is only `http://<server>:3001` (nothing after the port), the slug only the status page's last
    part; the container log line "Invalid response JSON in custom API widget url=…" shows the address Glance asked.
-4. You: when ready, cut over from your old Glance (`docs/runbooks/cutover.md`; rehearse the fallback first).
-5. Open decisions above (D-62, assets list, default themes) whenever convenient.
-6. Claude, when asked: record the PM's Unraid observations in ADR-0024; move the community widgets pin to a newer
+5. You: when ready, cut over from your old Glance (`docs/runbooks/cutover.md`; rehearse the fallback first).
+6. Open decisions above (D-62, assets list, default themes) whenever convenient.
+7. Claude, when asked: record the PM's Unraid observations in ADR-0024; move the community widgets pin to a newer
    commit (run `scripts/community-widgets.ts`, fix what it reports in `community-widgets.settings.yml`, give `origin`
    to each address field whose service can't run under a sub-path (ADR-0032), run `test/community-live.sh` on the
    image, review, PR); a newer Glance pin (ADR-0006) when one is released.
-7. Offered to the PM, not asked for yet: a README how-to for the Docker proxy on another server; Docker errors in
+8. Offered to the PM, not asked for yet: a README how-to for the Docker proxy on another server; Docker errors in
    plain words (needs an ADR); caching Playwright's Chromium in CI (`docs/todo-claude.md`).
 
 ## Session log
+- 2026-11-03: the PM merged PR #41 (an outside contribution: a `HOST` setting for IPv6) and asked Claude to check it.
+  Its CI passed after the merge; an image from main passed `test/all-in-one.sh`, and `HOST=::` worked over IPv6, but a
+  user's own `HOST` variable stopped the editor. ADR-0035 (option B) recommended, accepted and built on
+  `fix/editor-listen`, with `test/editor-listen.sh` (in CI). Not released; notes drafted under Unreleased.
 - 2026-10-28: end of session. Everything merged and pushed; PR #41 (outside contributor) left for the PM. Removed
   locally: scratch logs and spikes, build output, old copies of released images and merged local branches (all are
   on GitHub). Three lessons added (Glance's fade-in, hidden columns on a phone, `:has()` rules in pairs);

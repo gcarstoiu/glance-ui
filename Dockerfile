@@ -36,12 +36,13 @@ COPY third_party/glance/LICENSE third_party/glance/README.md /usr/share/doc/glan
 COPY LICENSE /usr/share/doc/glance-editor/LICENSE
 WORKDIR /app
 COPY --from=build /src/apps/editor/build build
-COPY image/start.ts image/docker-gate.ts image/dotenv.ts image/
+COPY image/start.ts image/docker-gate.ts image/dotenv.ts image/listen.ts image/
 # ADR-0024: only root reaches /run, so the editor (PUID) can't open the Docker socket mounted at /var/run/docker.sock,
 # whatever its permissions; and no setuid program can make it root.
 RUN echo '{"type":"module"}' > package.json \
  && chmod 0700 /run && find / -xdev -perm -4000 -type f -exec chmod u-s {} +
-ENV NODE_ENV=production PORT=3000 GLANCE_BIN=/usr/local/bin/glance GLANCE_VERSION=${GLANCE_VERSION} \
+# No PORT or HOST: the start program sets them for the editor (ADR-0035); without them, `node build` uses 3000.
+ENV NODE_ENV=production GLANCE_BIN=/usr/local/bin/glance GLANCE_VERSION=${GLANCE_VERSION} \
     GLANCE_CONFIG=/glance-config/glance.yml EDITOR_DATA_DIR=/data BODY_SIZE_LIMIT=100M
 # Starts as root: image/start.ts runs Glance and the Docker gate, and the editor as PUID:PGID (default 99:100).
 # Editor only (tests, dev, the four-container layout): run `node build` with --user.

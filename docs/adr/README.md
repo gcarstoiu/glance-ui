@@ -53,3 +53,4 @@ One file per decision: `NNNN-short-title.md`, copied from [0000-template.md](000
 | [0032](0032-try-a-widget-against-its-service.md) | Try a widget against its service, and tidy pasted page addresses | accepted (PM, 2026-10-26) | **yes** |
 | [0033](0033-community-widgets-early-alpha.md) | Community widgets marked early alpha | accepted (PM, 2026-10-27) | **yes** |
 | [0034](0034-compact-widgets.md) | Compact widgets: titles inside their boxes | accepted (PM, 2026-10-28) | **yes** |
+| [0035](0035-editor-listens-on-ipv4-and-ipv6.md) | The editor listens on IPv4 and IPv6 by itself | accepted (PM, 2026-11-03) | **yes** |

@@ -24,4 +24,5 @@ echo "== docker-containers";       test/glance-docker.sh
 echo "== Docker socket proxy";     test/docker-proxy.sh # with GLANCE_EDITOR_IMAGE set, also the editor image
 if [[ -n "${GLANCE_EDITOR_IMAGE:-}" ]]; then
   echo "== all-in-one container";  test/all-in-one.sh # ADR-0024, the Unraid install
+  echo "== editor listen address"; test/editor-listen.sh # ADR-0035, IPv4 and IPv6
 fi

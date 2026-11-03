@@ -301,3 +301,17 @@ overwrites labels with map values. **Do:** treat source reading as a hypothesis 
   **Do:** wait for `.content-ready` to be attached.
 - CSS built on `:has()` as a pair of rules: a browser without `:has()` drops only the rule that uses it and still
   applies the other one. **Do:** put both inside `@supports selector(:has(*))`.
+
+## The editor's address and the user's variables (2026-11-03, adapter-node 6.0.0, tested; ADR-0035)
+- The container's variables serve two masters: the start program's settings for the editor and the user's own
+  `${VARIABLES}` for Glance. Any name passed to the editor can clash with a dashboard's: a user's `HOST` stopped the
+  editor (it can't listen on that address), a user's `PORT` moved it away from 3000. **Do:** set the editor's own
+  values in `image/start.ts`, pass only names no dashboard would use, and test with the user's variables set
+  (`test/editor-listen.sh`).
+- An `ENV` in the Dockerfile is a container variable too, and the container's variables beat `.env` (ADR-0025): the
+  image's `PORT=3000` turned a `.env` `PORT` into 3000 for Glance. **Do:** keep the image's `ENV` to what the
+  start program can't set itself.
+- A fork's PR gets CI only after the owner approves the run. PR #41 was merged three seconds after the approval, so
+  its CI ran after the merge (it passed). **Do:** wait for the checks, approved or not, before merging.
+- `listen("::")` in Node takes IPv4 too, even with `net.ipv6.bindv6only=1`; a kernel without IPv6 refuses it, and a
+  seccomp profile that refuses `socket(AF_INET6, …)` stands in for one in a test.

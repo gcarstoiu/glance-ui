@@ -102,6 +102,10 @@ Auto memory is machine-local. This file is the record.
   called `moveWidget(app.draft!, …)`, which changed the live object and then had it replaced by the unchanged copy, so
   moves silently did nothing. Caught by the drag test, not by typecheck. **Do:** the function passed to `mutate` only
   touches its argument.
+- **A drop near the window's edge scrolls the page while the pointer waits** (2026-11-03). Within 56 px of an edge
+  the editor scrolls during a drag (`EDGE` in `drag.ts`); a test that dropped there let the target slide away before
+  the release, and on CI's slower machines it missed (11 of 32 under load locally). **Do:** follow the target until it
+  stops moving before releasing (`followTarget` in `test/e2e/moves.spec.ts`).
 - **An unnamed container query finds the nearest container.** Making `.canvas` a container (for the inspector-open
   column sizes) would have switched every `@container (max-width: 760px)` phone rule inside it to the canvas width.
   **Do:** name containers (`app`, `canvas`) and always query by name.

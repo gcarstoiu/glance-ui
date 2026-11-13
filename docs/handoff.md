@@ -1,7 +1,7 @@
 # Handoff
 
 The single place to see where the project stands. Updated at the end of every work session and every PR.
-Last updated: 2026-11-03 (v1.5.1 released: ADR-0035, the editor on IPv4 and IPv6).
+Last updated: 2026-11-13 (ADR-0036: Glance v0.8.8, not released yet).
 
 ## Current state
 - **Released:** **v1.5.1** is `:latest` (`ghcr.io/gcarstoiu/glance-editor`, public). Earlier: v1.0.0, v1.0.1, v1.1.0, v1.2.0,
@@ -22,7 +22,7 @@ Last updated: 2026-11-03 (v1.5.1 released: ADR-0035, the editor on IPv4 and IPv6
 - **Merging:** the PM allows Claude to merge PRs once CI is green unless something needs the PM's decision. Release
   notes, live host and cutover stay with the PM. Claude pushes release tags only when the PM has approved the notes
   and asked for the release (done for every release so far).
-- **Pinned:** Glance v0.8.6 by digest (`/glance.version`); community widgets at commit 0c643aa
+- **Pinned:** Glance v0.8.8 by digest (`/glance.version`, ADR-0036; main from 2026-11-13); community widgets at commit 0c643aa
   (`/community-widgets.version`); docker-socket-proxy v0.5.0 (`/docker-proxy.version`).
 - **Dev environment:** dev Glance :18180, dev editor :18190 (`docs/dev-environment.md`). It runs an older branch
   (Phase 10b); rebuild with `dev/up.sh` if you need it current.
@@ -44,6 +44,10 @@ Last updated: 2026-11-03 (v1.5.1 released: ADR-0035, the editor on IPv4 and IPv6
   159 of 165 can be added (6 refused with the reason). Live check: `test/community-live.sh`.
 - ADR-0031 drag and drop: links and groups between groups and Bookmarks widgets, widgets into and out of groups and
   split columns, pages, slides; a finger on the grip drags too; Move to… for touch and keyboard.
+- ADR-0036 (unreleased): Glance v0.8.8. A Reddit Search without App authentication is an error on Review (Glance
+  refuses it); a title link or a container's link Glance turns into a dead link is a warning; the Containers section
+  shows child containers under their parent; messages name the pinned version. The notes under Unreleased in
+  `CHANGELOG.md` wait for the PM.
 - ADR-0035 (v1.5.1): the editor listens on IPv4 and IPv6 by itself (IPv4 only without IPv6); `HOST` and `PORT`
   are the user's, for Glance; the editor always listens on 3000 inside the container. Replaces PR #41's `HOST` setting.
 - ADR-0034 (v1.5.0): compact widgets, a switch on the Theme screen (off by default): each title inside its box, so stacked
@@ -85,6 +89,11 @@ Nothing below may be built on until you decide. ★ = affects user experience.
 - ★ **ADR-0025 leftover:** no assets file list in the editor yet (say if wanted).
 - ★ **ADR-0026 leftover:** Glance's two default themes stay in the dashboard's theme picker (not answered;
   recommended; hiding them needs CSS).
+
+## Decided on 2026-11-13 (via chat)
+| ADR | Outcome |
+| --- | ------- |
+| [0036](adr/0036-glance-v0.8.8.md) | **Glance v0.8.8**, with the three recommendations: Reddit Search without App authentication an error on Review; dead links a warning; child containers under their parent |
 
 ## Decided on 2026-11-03 (via chat)
 | ADR | Outcome |
@@ -257,24 +266,30 @@ Nothing below may be built on until you decide. ★ = affects user experience.
 - The real-binary tests caught a validator bug that my own model-based tests missed. Both kinds of test are kept.
 
 ## Next steps
-1. You: submit `gcarstoiu/unraid-templates` at https://ca.unraid.net/submit/new; paste any Validate/Scan findings to
+1. You: approve the release notes under Unreleased in `CHANGELOG.md` (Glance v0.8.8), choose the version and say when
+   to release; Claude then opens the release PR. ADR-0007 counts a dropped Glance version as breaking (2.0.0); 1.6.0
+   if the bundled Glance moving on doesn't count as that.
+2. You: submit `gcarstoiu/unraid-templates` at https://ca.unraid.net/submit/new; paste any Validate/Scan findings to
    Claude.
-2. You: on Unraid, Docker → Check for Updates → apply the update (v1.5.1); Theme → Dashboard look → Compact widgets,
+3. You: on Unraid, Docker → Check for Updates → apply the update (v1.5.1); Theme → Dashboard look → Compact widgets,
    Save, and look at the dashboard; try a community widget's fields, More options and its settings panel, and drag a
    bookmark link to another group; report what you see.
-3. You: open the Uptime Kuma widget's settings (v1.4.0 and later): the Service line says whether Uptime Kuma answered, or why
+4. You: open the Uptime Kuma widget's settings (v1.4.0 and later): the Service line says whether Uptime Kuma answered, or why
    not. The address is only `http://<server>:3001` (nothing after the port), the slug only the status page's last
    part; the container log line "Invalid response JSON in custom API widget url=…" shows the address Glance asked.
-4. You: when ready, cut over from your old Glance (`docs/runbooks/cutover.md`; rehearse the fallback first).
-5. Open decisions above (D-62, assets list, default themes) whenever convenient.
-6. Claude, when asked: record the PM's Unraid observations in ADR-0024; move the community widgets pin to a newer
+5. You: when ready, cut over from your old Glance (`docs/runbooks/cutover.md`; rehearse the fallback first).
+6. Open decisions above (D-62, assets list, default themes) whenever convenient.
+7. Claude, when asked: record the PM's Unraid observations in ADR-0024; move the community widgets pin to a newer
    commit (run `scripts/community-widgets.ts`, fix what it reports in `community-widgets.settings.yml`, give `origin`
    to each address field whose service can't run under a sub-path (ADR-0032), run `test/community-live.sh` on the
-   image, review, PR); a newer Glance pin (ADR-0006) when one is released.
-7. Offered to the PM, not asked for yet: a README how-to for the Docker proxy on another server; Docker errors in
+   image, review, PR); a newer Glance pin (ADR-0006, as done in ADR-0036) when one is released.
+8. Offered to the PM, not asked for yet: a README how-to for the Docker proxy on another server; Docker errors in
    plain words (needs an ADR); caching Playwright's Chromium in CI (`docs/todo-claude.md`).
 
 ## Session log
+- 2026-11-13: the PM asked whether the Glance pin can move. v0.8.7 and v0.8.8 checked (release notes, source diff,
+  every test on v0.8.8, both binaries side by side); three changes reach users. The PM accepted the upgrade with the
+  recommendations; ADR-0036 built on `chore/glance-v0.8.8` with an upgrade test from v1.5.1. Not released.
 - 2026-11-03: v1.5.1 released at the PM's request (notes approved; release PR #45): `:1.5.1` and `:latest` published
   from main (0b32089); `test/all-in-one.sh` and `test/editor-listen.sh` passed on the published image. The Community
   Apps template is unchanged (it follows `:latest`). A comment on PR #41 explains the follow-up (posted at the PM's

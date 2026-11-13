@@ -27,7 +27,7 @@ One file per decision: `NNNN-short-title.md`, copied from [0000-template.md](000
 | [0006](0006-glance-version-pinning.md) | Glance version pinning and upgrade policy | accepted (our stack only) | **yes** |
 | [0007](0007-versioning-and-release-notes.md) | Versioning and release-notes process | accepted | no |
 | [0008](0008-backup-and-rollback.md) | Backup and rollback | accepted; superseded in part (0016) | **yes** |
-| [0009](0009-glance-behaviour-baseline.md) | Glance v0.8.6 behaviour baseline (verified facts) | accepted | **yes** |
+| [0009](0009-glance-behaviour-baseline.md) | Glance v0.8.6 behaviour baseline (verified facts) | accepted; re-run on v0.8.8 (0036) | **yes** |
 | [0010](0010-out-of-band-config-edits.md) | Handling hand edits to the generated glance.yml | superseded (0016) | **yes** |
 | [0011](0011-import-of-existing-config.md) | One-time import of the existing glance.yml | accepted (flatten); item 4 superseded (0015) | **yes** |
 | [0012](0012-design-handoff.md) | Design handoff from Claude Design | accepted (first delivery by zip) | **yes** |
@@ -54,3 +54,4 @@ One file per decision: `NNNN-short-title.md`, copied from [0000-template.md](000
 | [0033](0033-community-widgets-early-alpha.md) | Community widgets marked early alpha | accepted (PM, 2026-10-27) | **yes** |
 | [0034](0034-compact-widgets.md) | Compact widgets: titles inside their boxes | accepted (PM, 2026-10-28) | **yes** |
 | [0035](0035-editor-listens-on-ipv4-and-ipv6.md) | The editor listens on IPv4 and IPv6 by itself | accepted (PM, 2026-11-03) | **yes** |
+| [0036](0036-glance-v0.8.8.md) | Glance v0.8.8 | accepted (PM, 2026-11-13) | **yes** |

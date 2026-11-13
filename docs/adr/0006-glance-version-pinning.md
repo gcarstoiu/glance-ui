@@ -43,3 +43,5 @@
   (`glanceapp/glance`, i.e. `latest`) is **not changed**. It is replaced at cutover.
 - Point 2 above ("live Glance should be pinned to the same tag") therefore means: the new stack's Glance is pinned. No
   action on the current instance.
+
+**2026-11-13:** the pin moved to v0.8.8 (ADR-0036, accepted by the PM). `/glance.version` holds the current value.

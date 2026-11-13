@@ -66,7 +66,7 @@ data model; `glance.yml` is generated on every explicit Save and is output only.
 | `test/` | Harness scripts and fixtures (`test/fixtures/model/v2/` = model fixtures) |
 | `.github/` | CI, PR template, issue forms |
 
-## Key Glance facts (v0.8.6; details and evidence in ADR-0009)
+## Key Glance facts (v0.8.8, re-checked 2026-11-13; details and evidence in ADR-0009 and ADR-0036)
 - Hot reload works for the main and included files. An invalid config at runtime is logged, and the old config is kept.
 - An invalid config at **startup**: Glance exits with **code 0**. Don't trust the exit code.
 - Atomic writes need the config **directory** to be bind-mounted, not the single file.
@@ -88,6 +88,8 @@ data model; `glance.yml` is generated on every explicit Save and is output only.
   it ignores the editor's own top-level `glance-editor:` key. `/assets/` is cached 2 h: name files by content.
 - `server.base-url` prefixes every link and script path Glance writes, but not its routes: a proxy that strips the
   prefix serves it under a path (the preview at `/preview`, ADR-0019). An unset env var in a placeholder fails the load.
-- Glance's theme defaults (v0.8.6 main.css): background 240 8 9, primary 43 50 70, positive = primary, negative 0 70 70.
+- Glance's theme defaults (main.css, unchanged v0.8.6 to v0.8.8): background 240 8 9, primary 43 50 70, positive = primary, negative 0 70 70.
 - Glance's docs overstate "required" for 17 widget fields and differ from v0.8.6 on some defaults (lessons, ADR-0018).
   The binary is the reference: `packages/document/test/widget-schema.test.ts`.
+- New in v0.8.8 (ADR-0036): Reddit `search` needs `app-auth`; a title link or a container's link whose scheme isn't
+  http, https or mailto becomes `#ZgotmplZ`; a child container (`glance.parent`) isn't filtered by the category.

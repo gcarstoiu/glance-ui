@@ -8,7 +8,7 @@
 import { describe, expect, it } from "vitest";
 import { stringify } from "yaml";
 import {
-  GLANCE_SOURCE_WIDGET_TYPES, GLANCE_THEMES, WIDGETS, WIDGET_TYPES, checkDashboard, widgetFields, type Field, type Issue,
+  GLANCE_SOURCE_WIDGET_TYPES, GLANCE_THEMES, GLANCE_VERSION, WIDGETS, WIDGET_TYPES, checkDashboard, widgetFields, type Field, type Issue,
 } from "@glance-editor/model";
 import { generate } from "@glance-editor/generator";
 import { validateConfig } from "@glance-editor/glance";
@@ -88,7 +88,7 @@ const expectGlance = async (w: Obj, ok: boolean, what: string) => {
   expect(r.ok, `${what}: Glance ${ok ? "rejected" : "accepted"} it. ${r.output}\n${configOf(w)}`).toBe(ok);
 };
 
-describe("widget schemas match Glance v0.8.6 (Phase 4)", { timeout: 300_000 }, () => {
+describe(`widget schemas match Glance ${GLANCE_VERSION} (Phase 4)`, { timeout: 300_000 }, () => {
   it("covers exactly the types in Glance's source at the pinned commit", () => {
     expect([...WIDGET_TYPES].sort()).toEqual([...GLANCE_SOURCE_WIDGET_TYPES].sort());
   });
@@ -112,7 +112,7 @@ describe("widget schemas match Glance v0.8.6 (Phase 4)", { timeout: 300_000 }, (
           // Every sample value fits its field: nothing kept as-is, no unknown keys.
           expect(imported.report.keptAsIs, mode).toEqual([]);
           expect(imported.report.unknownKeys, mode).toEqual([]);
-          const { yaml, placeholderHints } = generate(imported.dashboard!, { glanceVersion: "v0.8.6" });
+          const { yaml, placeholderHints } = generate(imported.dashboard!, { glanceVersion: GLANCE_VERSION });
           const again = await validateConfig(yaml, { hints: placeholderHints });
           expect(again.ok, `${mode} after import → generate: ${again.output}\n${yaml}`).toBe(true);
         }
@@ -130,7 +130,7 @@ describe("widget schemas match Glance v0.8.6 (Phase 4)", { timeout: 300_000 }, (
         }));
       });
 
-      it("docs-required fields: Glance v0.8.6 accepts the widget without them", async () => {
+      it(`docs-required fields: Glance ${GLANCE_VERSION} accepts the widget without them`, async () => {
         const full = widget(type, "full");
         await Promise.all(own.filter(({ f }) => f.docsRequired).map(({ path }) =>
           expectGlance(setAt(full, path, undefined), true, `without ${path.join(".")}`)));
@@ -155,10 +155,11 @@ describe("widget schemas match Glance v0.8.6 (Phase 4)", { timeout: 300_000 }, (
   }
 });
 
-describe("cross-field rules match Glance v0.8.6", { timeout: 120_000 }, () => {
+describe(`cross-field rules match Glance ${GLANCE_VERSION}`, { timeout: 120_000 }, () => {
   const cases: { name: string; widget: Obj; code: string }[] = [
     { name: "reddit request-url-template without {REQUEST-URL}", widget: { type: "reddit", subreddit: "a", "request-url-template": "https://p/?u=" }, code: "reddit.request-url-template" },
     { name: "reddit app-auth with only a name", widget: { type: "reddit", subreddit: "a", "app-auth": { name: "n" } }, code: "reddit.app-auth-incomplete" },
+    { name: "reddit search without app-auth (v0.8.8)", widget: { type: "reddit", subreddit: "a", search: "glance" }, code: "reddit.search-needs-app-auth" },
     { name: "releases with an unknown source prefix", widget: { type: "releases", repositories: ["sourceforge:a/b"] }, code: "releases.invalid-source" },
     { name: "releases with an empty line", widget: { type: "releases", repositories: [""] }, code: "releases.empty-repository" },
     { name: "custom-api string body type with a map body", widget: { type: "custom-api", template: "x", url: "https://e/", "body-type": "string", body: { a: 1 } }, code: "custom-api.body-not-string" },
@@ -173,7 +174,7 @@ describe("cross-field rules match Glance v0.8.6", { timeout: 120_000 }, () => {
   }
   it("their valid counterparts pass both", async () => {
     const ok: Obj[] = [
-      { type: "reddit", subreddit: "a", "request-url-template": "https://p/?u={REQUEST-URL}", "app-auth": { name: "n", id: "i", secret: "s" } },
+      { type: "reddit", subreddit: "a", "request-url-template": "https://p/?u={REQUEST-URL}", "app-auth": { name: "n", id: "i", secret: "s" }, search: "glance" },
       { type: "releases", repositories: ["gitlab:a/b", "codeberg:a/b", "dockerhub:a/b", "github:a/b", "a/b"] },
       { type: "custom-api", template: "x", url: "https://e/", "body-type": "string", body: "text" },
       { type: "group", widgets: [{ type: "clock" }] },
@@ -193,7 +194,7 @@ describe("placeholders in checked fields validate with a valid stand-in", () => 
       { type: "reddit", subreddit: "a", "request-url-template": "${PROXY}" },
     )).dashboard!;
     expect(checkDashboard(d).filter((i) => i.severity === "error")).toEqual([]);
-    const { yaml, placeholderHints } = generate(d, { glanceVersion: "v0.8.6" });
+    const { yaml, placeholderHints } = generate(d, { glanceVersion: GLANCE_VERSION });
     const r = await validateConfig(yaml, { hints: placeholderHints });
     expect(r.ok, r.output).toBe(true);
   });

@@ -1,5 +1,5 @@
 // Checks that go beyond the schema's shape. Each rule cites where it comes from.
-// Errors: Glance v0.8.6 would reject the config, or an accepted ADR forbids it. Warnings: Glance accepts it, but
+// Errors: the pinned Glance would reject the config, or an accepted ADR forbids it. Warnings: Glance accepts it, but
 // it probably doesn't do what the user expects.
 
 import { containsPlaceholder, findPlaceholders, isWholePlaceholder } from "./placeholder.ts";
@@ -13,6 +13,7 @@ import {
   type WidgetT,
 } from "./schema.ts";
 import { WIDGETS, widgetFields } from "./widgets.ts";
+import { GLANCE_VERSION } from "./glance-source.generated.ts";
 
 export type Severity = "error" | "warning";
 
@@ -95,7 +96,7 @@ function checkWidget(w: WidgetT, path: Issue["path"], add: Add, parentType: stri
   // widget.go newWidget: "unknown widget type"
   if (isRawWidget(w)) {
     if (!GLANCE_WIDGET_TYPES.includes(w.type)) {
-      add("error", "widget.unknown-type", [...path, "type"], `Glance v0.8.6 has no widget type "${w.type}".`);
+      add("error", "widget.unknown-type", [...path, "type"], `Glance ${GLANCE_VERSION} has no widget type "${w.type}".`);
     }
     return;
   }
@@ -143,12 +144,15 @@ function checkWidgetRules(w: Record<string, unknown>, path: Issue["path"], add: 
         add("error", "reddit.request-url-template", [...path, "request-url-template"], "The request URL template must contain {REQUEST-URL}.");
       }
       // "application name, client ID and client secret are required"
-      const auth = w["app-auth"] as Record<string, unknown> | undefined;
-      if (auth && typeof auth === "object") {
-        const set = ["name", "id", "secret"].filter((k) => !isEmpty(auth[k]));
-        if (set.length > 0 && set.length < 3) {
-          add("error", "reddit.app-auth-incomplete", [...path, "app-auth"], "App authentication needs all three: app name, client ID and client secret.");
-        }
+      const auth = w["app-auth"] && typeof w["app-auth"] === "object" ? (w["app-auth"] as Record<string, unknown>) : {};
+      const set = ["name", "id", "secret"].filter((k) => !isEmpty(auth[k]));
+      if (set.length > 0 && set.length < 3) {
+        add("error", "reddit.app-auth-incomplete", [...path, "app-auth"], "App authentication needs all three: app name, client ID and client secret.");
+      }
+      // v0.8.8: "due to changes in Reddit's API, the search property works only when app-auth is configured" (ADR-0036)
+      if (!isEmpty(w.search) && set.length === 0) {
+        add("error", "reddit.search-needs-app-auth", [...path, "search"],
+          "Search works only with App authentication, since Reddit changed its API. Fill in App authentication, or clear Search.");
       }
       break;
     }
@@ -180,6 +184,14 @@ function checkWidgetRules(w: Record<string, unknown>, path: Issue["path"], add: 
       break;
     }
   }
+  // ADR-0036: links Glance turns into dead links (the title link of every widget, a container's link).
+  const link = (v: unknown, p: Issue["path"]) => {
+    if (typeof v === "string" && glanceDropsLink(v)) add("warning", "link.dropped", p, DROPPED_LINK);
+  };
+  link(w["title-url"], [...path, "title-url"]);
+  if (w.type === "docker-containers" && Array.isArray(w.containers)) {
+    w.containers.forEach((e: unknown, i: number) => e && typeof e === "object" && link((e as Record<string, unknown>).url, [...path, "containers", i, "url"]));
+  }
   // Every widget: monitor-style basic auth passwords in plain text.
   if (w.type === "monitor" && Array.isArray(w.sites)) {
     w.sites.forEach((s: { "basic-auth"?: { password?: string } | undefined }, i: number) => {
@@ -190,6 +202,22 @@ function checkWidgetRules(w: Record<string, unknown>, path: Issue["path"], add: 
       }
     });
   }
+}
+
+const DROPPED_LINK = "Glance makes this a dead link: it keeps only links that start with http://, https:// or mailto:, or paths on this server.";
+
+/**
+ * Glance v0.8.8 writes a widget's title link and a container's link through Go's html/template, which replaces a link
+ * with any other scheme by "#ZgotmplZ" (go1.27.3 src/html/template/url.go isSafeURL: the text before the first ":"
+ * is a scheme unless it contains "/"; http, https and mailto pass, in any case). A placeholder there can't be judged.
+ * Tested against the binary: packages/glance/test/links.test.ts.
+ */
+export function glanceDropsLink(url: string): boolean {
+  const i = url.indexOf(":");
+  if (i < 0) return false;
+  const scheme = url.slice(0, i);
+  if (scheme.includes("/") || scheme.includes("$")) return false;
+  return !["http", "https", "mailto"].includes(scheme.toLowerCase());
 }
 
 /** Glance v0.8.6 utils.go titleToSlug: lower-case, runs of whitespace (Go `\s`) become "-", then "-" trimmed at both ends. */
@@ -322,7 +350,7 @@ function checkExtras(value: unknown, path: (string | number)[], add: Add, known?
         if (keys.has(key)) {
           add("warning", "key.kept-as-is", [...path, "extra", key], `"${key}" has a value the editor can't edit in a form; it is kept exactly as written.`);
         } else {
-          add("warning", "key.unknown", [...path, "extra", key], `Glance v0.8.6 doesn't use "${key}" here, so it will be ignored.`);
+          add("warning", "key.unknown", [...path, "extra", key], `Glance ${GLANCE_VERSION} doesn't use "${key}" here, so it will be ignored.`);
         }
       }
       continue;

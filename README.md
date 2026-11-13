@@ -8,7 +8,7 @@ always a plain Glance dashboard.
 ![A Glance dashboard made with the editor](docs/screenshots/readme/dashboard-desktop.png)
 
 > **Status:** release candidate for v1.0.0. Built and tested for Unraid on amd64; it runs anywhere Docker runs.
-> Pinned to Glance **v0.8.6** ([glance.version](glance.version)).
+> Pinned to Glance **v0.8.8** ([glance.version](glance.version)).
 
 ## Built on Glance
 Glance is the work of the [glanceapp/glance](https://github.com/glanceapp/glance) project and its contributors: the
@@ -32,7 +32,7 @@ Install it once, and it's all there.
 ### The editor
 - **Pages and columns.** Add, rename, reorder and delete pages. Pick a layout of up to three columns, small or
   full. The editor keeps you within Glance's rules: at most three columns, one or two full, slim pages with two.
-- **Every widget Glance v0.8.6 has**, each with a form built from its settings. Glance's defaults show greyed, so
+- **Every widget Glance v0.8.8 has**, each with a form built from its settings. Glance's defaults show greyed, so
   `glance.yml` only gets what you change. Anything the form doesn't cover can be written in the widget's YAML tab.
 - **Drag and drop** by a grip, with a mouse or a finger: widgets between columns and into groups, pages, slides, and
   bookmark links and groups, even into another Bookmarks widget. Or tap the grip for move buttons and **Move to…**.

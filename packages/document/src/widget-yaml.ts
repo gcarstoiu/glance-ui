@@ -1,7 +1,7 @@
 // A widget's YAML tab (design D-12): the text to show for one widget, and reading back what the user typed.
 
 import { isMap, isSeq, type Node } from "yaml";
-import { Widget, type WidgetT } from "@glance-editor/model";
+import { GLANCE_VERSION, Widget, type WidgetT } from "@glance-editor/model";
 import { serializeYaml, widgetToGlanceJson } from "@glance-editor/generator";
 import { widgetFromJson } from "./import.ts";
 import { glanceParse, lineStart } from "./text.ts";
@@ -37,7 +37,7 @@ export function widgetFromYaml(text: string, id: string): WidgetYamlResult {
   const checked = r.widget ? Widget.safeParse(r.widget) : undefined;
   if (!checked?.success) return { ok: false, message: r.issues[0]?.message ?? "The editor couldn't read this widget.", line: null };
   const notes = [
-    ...r.report.unknownKeys.map((k) => `"${key(k)}" isn't a key Glance v0.8.6 uses here; it is kept as written.`),
+    ...r.report.unknownKeys.map((k) => `"${key(k)}" isn't a key Glance ${GLANCE_VERSION} uses here; it is kept as written.`),
     ...r.report.keptAsIs.map((k) => `"${key(k.path)}": ${k.reason}; it is kept as written.`),
     ...r.issues.map((i) => i.message),
   ];

@@ -243,3 +243,37 @@ test.describe("Fill in icons and links (ADR-0027)", () => {
     await g.close();
   });
 });
+
+// ADR-0036: Glance v0.8.8 lists a child (glance.parent, no glance.id) under its parent, also when the widget lists one
+// category; a child whose parent isn't listed isn't shown.
+test.describe("Child containers (ADR-0036)", () => {
+  test.use({ opts: { seed: fixture("docker.yml"), glance: true, docker: [
+    { name: "immich-server", labels: { "glance.id": "immich", "glance.category": "media", "glance.name": "Immich" } },
+    { name: "immich-db", labels: { "glance.parent": "immich", "glance.name": "Immich DB" } },
+    { name: "paperless", labels: { "glance.category": "docs" } },
+    { name: "redis", labels: { "glance.parent": "cache" } },
+  ] } });
+
+  test("in a category, the child shows under its parent; the editor's lines and the real Glance agree", async ({ page, editor }) => {
+    await importSeed(page, editor.url);
+    const state = await (await page.request.get(`${editor.url}/api/state`)).json();
+    state.draft.pages[0].columns[0].widgets[0].category = "media";
+    expect((await (await page.request.put(`${editor.url}/api/draft`, { data: state.draft, headers: { origin: editor.url } })).json()).ok).toBe(true);
+    await page.reload();
+    await openWidget(page);
+    const ins = inspector(page);
+    await expect(ins.getByText("2 of 6 containers shown.", { exact: false })).toBeVisible();
+    await expect(row(page, "Immich DB").getByText("Running · shown under “Immich”")).toBeVisible();
+    await expect(row(page, "paperless").getByText("Not shown: this widget lists only the category “media”")).toBeVisible();
+    await expect(row(page, "redis").getByText("Not shown: Glance lists it under the container with glance.id “cache”, and there is none")).toBeVisible();
+    await row(page, "Immich DB").scrollIntoViewIfNeeded();
+    await shot(page, "containers-children", { fullPage: false });
+    if (isPhone(page)) await ins.getByRole("button", { name: "Back to layout" }).click();
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await page.getByRole("dialog", { name: "Review and save" }).getByRole("button", { name: "Check and save" }).click();
+    await expect(page.getByRole("heading", { name: "Version 1 is live" })).toBeVisible();
+    const html = await (await page.request.get(`http://127.0.0.1:${editor.glancePort}/api/pages/home/content/`)).text();
+    for (const shown of ["Immich", "Immich DB"]) expect(html, shown).toContain(shown);
+    for (const hidden of ["paperless", "redis"]) expect(html, hidden).not.toContain(hidden);
+  });
+});

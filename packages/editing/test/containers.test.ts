@@ -1,4 +1,4 @@
-// The Containers section's rules (D-22 to D-24) against Glance v0.8.6's (widget-docker-containers.go, read 2026-10-14).
+// The Containers section's rules (D-22 to D-24) against Glance v0.8.8's (widget-docker-containers.go; test/glance-docker.sh).
 // Property: whatever the widget and the container's labels, pressing the eye gives the outcome asked for, and
 // touches nothing but that container's `hide`.
 import fc from "fast-check";
@@ -53,6 +53,28 @@ describe("containerRows", () => {
     const l = [c("a", "running", { category: "media" }), c("b"), c("d", "running", { category: "media" })];
     const w = { category: "media", containers: [{ _id: "x", container: "b", category: "media" }, { _id: "y", container: "d", category: "" }] };
     expect(containerRows(w, l).rows.map((x) => x.shown)).toEqual([true, true, false]);
+  });
+
+  it("v0.8.8: a child (glance.parent, no glance.id) is shown under its parent, whatever the widget's category", () => {
+    const l = [
+      c("immich", "running", { id: "im", category: "media", name: "Immich" }), c("immich-db", "running", { parent: "im" }),
+      c("other", "running", { id: "ot" }), c("other-db", "running", { parent: "ot" }), c("orphan", "running", { parent: "none" }),
+    ];
+    const r = containerRows({ category: "media" }, l);
+    expect(r.rows.map((x) => [x.name, x.shown])).toEqual([["immich", true], ["immich-db", true], ["orphan", false], ["other", false], ["other-db", false]]);
+    expect(row({ category: "media" }, l, "immich-db").sub).toBe("Running · shown under “Immich”");
+    expect(row({ category: "media" }, l, "other-db").sub).toBe("Not shown: Glance lists it under “other”, which isn’t shown");
+    expect(row({}, l, "orphan").sub).toBe("Not shown: Glance lists it under the container with glance.id “none”, and there is none");
+    expect(r.shown).toBe(2);
+  });
+
+  it("a child follows the hide rules and Running only itself; a container with glance.id is never a child; the map sets both", () => {
+    const l = [c("app", "running", { id: "a" }), c("db", "exited", { parent: "a" }), c("cache", "running", { parent: "a", hide: "true" }), c("both", "running", { id: "b", parent: "a", category: "x" })];
+    expect(containerRows({ "running-only": true }, l).rows.map((x) => [x.name, x.shown])).toEqual([["app", true], ["both", true], ["cache", false], ["db", false]]);
+    expect(row({ category: "y" }, l, "both").sub).toMatch(/only the category/);
+    const w = { containers: [{ _id: "y", container: "app", id: "" }, { _id: "z", container: "both", parent: "" }] };
+    expect(row(w, l, "db").sub).toBe("Not shown: Glance lists it under the container with glance.id “a”, and there is none");
+    expect(row(w, l, "app")).toMatchObject({ shown: true, sub: "Running" });
   });
 
   it("names in the map that Docker doesn't report are listed; all of them when Docker can't be reached", () => {

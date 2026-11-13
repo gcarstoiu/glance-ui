@@ -81,5 +81,14 @@ against real labelled containers before the editor depends on it (Phase plan, Ph
 - Source only: 15, debounce, healthz.
 - Not checked: arm64 image, Docker on the live host, Windows/macOS hosts, behaviour with Glance `auth` enabled.
 
+## Re-run on v0.8.8 (2026-11-13, ADR-0036)
+- Same machine (Docker 29.8.0, amd64), image `glanceapp/glance:v0.8.8@sha256:4d7445bc…1943bb`: every harness script
+  passed unchanged (fixtures, upstream example, CLI and placeholders, hot reload and the reload signal, the map over
+  labels, the socket proxy, the all-in-one container). Fact 5 still holds: an invalid config at start is logged and
+  Glance exits with code 0 (checked by hand).
+- New: a Reddit widget with `search` and no `app-auth` is invalid; a title link or a container's link with a scheme
+  other than http, https or mailto is written as `#ZgotmplZ`; a child container isn't filtered by the widget's
+  category. Details and tests in ADR-0036.
+
 ## Decision record
 **Accepted 2026-10-13 by the PM (via chat)**, with the clarification in consequence 4 (our own Glance mounts the config directory; the current one is replaced, not changed).

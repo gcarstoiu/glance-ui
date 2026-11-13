@@ -319,3 +319,12 @@ overwrites labels with map values. **Do:** treat source reading as a hypothesis 
   its CI ran after the merge (it passed). **Do:** wait for the checks, approved or not, before merging.
 - `listen("::")` in Node takes IPv4 too, even with `net.ipv6.bindv6only=1`; a kernel without IPv6 refuses it, and a
   seccomp profile that refuses `socket(AF_INET6, …)` stands in for one in a test.
+- Moving the Glance pin (ADR-0036) broke tests that weren't about Glance: the community widgets snapshot records the
+  version it was checked with, and several expectations and messages had "v0.8.6" written in. `scripts/test.sh` stops
+  at the first failing step, so the shell harness didn't run until those were fixed. **Do:** after a bump, run
+  `scripts/glance-source-data.ts` and `scripts/community-widgets.ts`, then `git grep` the old version in code and
+  tests; messages take `GLANCE_VERSION` (generated from `/glance.version`).
+- Glance's patch releases change behaviour too, beyond what their notes say: v0.8.7's note on Reddit `search` doesn't
+  say the whole config is refused (so an existing dashboard stops loading after an update), and v0.8.8's dead links
+  for other schemes aren't in its notes at all. **Do:** diff the source between the tags, and run the old and new
+  binary on the same config.

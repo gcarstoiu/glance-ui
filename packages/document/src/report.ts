@@ -1,4 +1,4 @@
-import type { Issue } from "@glance-editor/model";
+import { GLANCE_VERSION, type Issue } from "@glance-editor/model";
 import type { ImportReport } from "./import.ts";
 
 /** Human-readable import report (Markdown). Placeholder values are never shown: they are never resolved (D-37). */
@@ -13,7 +13,7 @@ export function formatReport(r: ImportReport, issues: Issue[]): string {
   if (r.anchors || r.aliases) lines.push(`- YAML anchors: ${r.anchors}, aliases: ${r.aliases} (kept unless the value they're on is edited)`);
   if (r.includes.length) lines.push(`- Included files merged into glance.yml on first save (D-36): ${r.includes.join(", ")}`);
   if (r.placeholders.length) lines.push(`- Placeholders kept as written: ${r.placeholders.map((p) => `\`${p.text}\`${p.count > 1 ? ` ×${p.count}` : ""}`).join(", ")}`);
-  if (r.unknownKeys.length) lines.push(`- Keys Glance v0.8.6 doesn't use (kept, but Glance ignores them): ${r.unknownKeys.map((k) => `\`${k}\``).join(", ")}`);
+  if (r.unknownKeys.length) lines.push(`- Keys Glance ${GLANCE_VERSION} doesn't use (kept, but Glance ignores them): ${r.unknownKeys.map((k) => `\`${k}\``).join(", ")}`);
   if (r.keptAsIs.length) lines.push(`- Values kept as-is (editable in YAML only): ${r.keptAsIs.map((k) => `\`${k.path}\` (${k.reason})`).join(", ")}`);
   for (const [title, list] of [["Problems", errors], ["Warnings", warnings]] as const) {
     if (!list.length) continue;

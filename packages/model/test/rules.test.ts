@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { checkDashboard, hasErrors, parseDashboard, type Issue } from "../src/index.ts";
+import { checkDashboard, glanceDropsLink, hasErrors, parseDashboard, type Issue } from "../src/index.ts";
 import { clock, col, dash, page, uid } from "./helpers.ts";
 
 const codes = (issues: Issue[]) => issues.filter((i) => i.severity === "error").map((i) => i.code);
@@ -91,4 +91,34 @@ describe("fields Glance's docs call required (ADR-0018: warn, don't block)", () 
     const m = withWidget({ type: "markets", stocks: [{ _id: "s", symbol: "X" }] });
     expect(m.issues.filter((i) => i.code === "field.recommended")).toEqual([]);
   });
+});
+
+describe("Glance v0.8.8 changes (ADR-0036)", () => {
+  const one = (w: object) => checkDashboard(dash([page([col("full", [{ _id: uid(), ...w } as never])])]));
+  const warns = (issues: Issue[]) => issues.filter((i) => i.severity === "warning").map((i) => `${i.code}@${i.path.slice(6).join(".")}`);
+
+  it("Reddit Search without App authentication is an error on the Search field; with it, or without Search, none", () => {
+    const issues = one({ type: "reddit", subreddit: "a", search: "glance" });
+    expect(issues.filter((i) => i.code === "reddit.search-needs-app-auth").map((i) => i.path.at(-1))).toEqual(["search"]);
+    expect(codes(one({ type: "reddit", subreddit: "a", search: "glance", "app-auth": { name: "n", id: "i", secret: "s" } }))).toEqual([]);
+    expect(codes(one({ type: "reddit", subreddit: "a" }))).toEqual([]);
+    // Partly filled: Glance names the missing parts first, so only that error.
+    expect(codes(one({ type: "reddit", subreddit: "a", search: "x", "app-auth": { name: "n" } }))).toEqual(["reddit.app-auth-incomplete"]);
+  });
+
+  it("a title link or a container's link Glance turns into a dead link is a warning, never an error", () => {
+    expect(warns(one({ type: "clock", "title-url": "smb://nas/share" }))).toEqual(["link.dropped@title-url"]);
+    expect(warns(one({ type: "clock", "title-url": "https://example.com" }))).toEqual([]);
+    const docker = one({ type: "docker-containers", containers: [{ _id: "a", container: "x", url: "vnc://h" }, { _id: "b", container: "y", url: "http://h" }] });
+    expect(warns(docker)).toEqual(["link.dropped@containers.0.url"]);
+    expect(hasErrors(docker)).toBe(false);
+  });
+});
+
+describe("glanceDropsLink (go1.27.3 html/template isSafeURL; checked against the binary in packages/glance/test/links.test.ts)", () => {
+  it.each([
+    ["https://a", false], ["HTTP://a", false], ["mailto:a@b", false], ["/assets/x", false], ["page", false], ["a/b:c", false], ["", false],
+    ["smb://a", true], ["localhost:8080", true], ["javascript:x", true], ["tel:1", true], [" http://a", true],
+    ["${URL}", false], ["${secret:url}", false], ["smb://${HOST}/x", true],
+  ])("%j → %s", (url, dropped) => expect(glanceDropsLink(url)).toBe(dropped));
 });

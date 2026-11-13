@@ -1,13 +1,15 @@
 // The Containers section of a docker-containers widget (design D-22 to D-24, flow "Hide a container"): which
-// containers Glance shows, and the `containers` map edit that shows or hides one. Mirrors Glance v0.8.6,
-// widget-docker-containers.go (source at the pinned commit, read 2026-10-14):
+// containers Glance shows, and the `containers` map edit that shows or hides one. Mirrors Glance v0.8.8,
+// widget-docker-containers.go (read 2026-10-14 at v0.8.6, children re-read 2026-11-13 at v0.8.8; test/glance-docker.sh):
 //   - the map is map[string]map[string]string: per container name, glance.* labels without the prefix. Glance copies
 //     each entry over the container's labels before anything else, so the map wins over a label (tested:
 //     test/glance-docker.sh);
 //   - a container is hidden when its glance.hide (after the copy) is non-empty and "true" or "yes"
 //     (stringToBool, utils.go), shown when it is any other non-empty value, and otherwise follows hide-by-default;
 //   - category keeps only containers whose glance.category equals the widget's; running-only asks Docker for
-//     all=false, which also returns paused containers (tested 2026-10-14, Docker 29.8).
+//     all=false, which also returns paused containers (tested 2026-10-14, Docker 29.8);
+//   - a child (glance.parent set, glance.id not) is listed only under each listed container whose glance.id it names;
+//     since v0.8.8 the category doesn't filter children (they follow their parent).
 import { newId } from "./layout.ts";
 
 /** One container as the editor's Docker connection reports it; `glance` holds its glance.* labels without the prefix. */
@@ -63,18 +65,30 @@ export function containerRows(w: Widget, list: ContainerInfo[] | null): Containe
   const category = typeof w.category === "string" ? w.category : "";
   const known = new Map((list ?? []).map((c) => [c.name, c]));
   const names = [...known.keys(), ...entries(w).map((e) => e.container).filter((n): n is string => !!n && !known.has(n))];
+  // A glance.* label as Glance reads it: the map's entry replaces the container's label, even when empty.
+  const label = (name: string, key: string) => {
+    const e = entryFor(w, name);
+    return e?.[key] !== undefined ? str(e[key]) : (known.get(name)?.glance[key] ?? "");
+  };
+  const visibleOf = (name: string) => (label(name, "hide") ? !truthy(label(name, "hide")) : !hbd);
+  const stoppedOf = (c: ContainerInfo | undefined) => !!c && runningOnly && c.state !== "running" && c.state !== "paused";
+  const childOf = (name: string) => (label(name, "id") === "" ? label(name, "parent") : "");
+  const offCategoryOf = (name: string) => category !== "" && !childOf(name) && label(name, "category") !== category;
+  // Containers Glance lists in their own right (not children): children are shown under these.
+  const listed = [...known.keys()].filter((n) => !childOf(n) && visibleOf(n) && !stoppedOf(known.get(n)) && !offCategoryOf(n));
   const rows = [...new Set(names)].sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase())).map((name): ContainerRow => {
     const c = known.get(name);
-    const e = entryFor(w, name);
     const labelHide = c?.glance.hide ?? "";
-    const hide = e?.hide !== undefined ? str(e.hide) : labelHide; // a map entry replaces the label, even when empty
-    const visible = hide ? !truthy(hide) : !hbd;
+    const visible = visibleOf(name);
     const byLabel = truthy(labelHide);
-    const effCategory = e?.category !== undefined ? str(e.category) : (c?.glance.category ?? "");
-    const offCategory = !!c && category !== "" && effCategory !== category;
-    const stopped = !!c && runningOnly && c.state !== "running" && c.state !== "paused";
-    const shown = !!c && visible && !offCategory && !stopped;
+    const offCategory = !!c && offCategoryOf(name);
+    const stopped = stoppedOf(c);
+    const parentId = childOf(name);
+    const parents = parentId ? [...known.keys()].filter((n) => label(n, "id") === parentId) : [];
+    const under = listed.find((n) => parents.includes(n));
+    const shown = !!c && visible && !offCategory && !stopped && (!parentId || under !== undefined);
     const hidden = visible ? "" : " · hidden";
+    const nameOf = (n: string) => label(n, "name") || n;
     let sub: string;
     if (byLabel && !visible) sub = "Hidden by the glance.hide label on the container. Change it where the container is defined.";
     else if (byLabel) sub = "Shown: this widget’s containers map overrides the container’s glance.hide label. Change it in the YAML tab.";
@@ -82,6 +96,9 @@ export function containerRows(w: Widget, list: ContainerInfo[] | null): Containe
     else if (!c) sub = `Docker has no container with this name, so Glance ignores it${hidden}`;
     else if (offCategory) sub = `Not shown: this widget lists only the category “${category}”${hidden}`;
     else if (stopped) sub = `${stateText(c.state)} · not shown while Running only is on${hidden}`;
+    else if (parentId && visible && under !== undefined) sub = `${stateText(c.state)} · shown under “${nameOf(under)}”`;
+    else if (parentId && visible && parents.length) sub = `Not shown: Glance lists it under “${nameOf(parents[0]!)}”, which isn’t shown`;
+    else if (parentId && visible) sub = `Not shown: Glance lists it under the container with glance.id “${parentId}”, and there is none`;
     else sub = `${stateText(c.state)}${hidden}`;
     return { name, state: c?.state ?? null, visible, shown, locked: byLabel, sub };
   });

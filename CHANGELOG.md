@@ -4,6 +4,8 @@ All notable changes are recorded here. The format follows Keep a Changelog; vers
 (process: docs/adr/0007-versioning-and-release-notes.md, accepted).
 
 ## [Unreleased]
+
+## [2.0.0] - 2026-11-13
 ### Changed
 - **The dashboard runs Glance v0.8.8** (was v0.8.6), with Glance's fixes and security fixes since then.
 - **A Reddit widget's Search needs App authentication**, since Reddit changed its API. Glance v0.8.8 refuses the

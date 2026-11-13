@@ -37,7 +37,7 @@ body:
     attributes:
       label: Versions
       description: Editor version (from the footer or release) and Glance version.
-      placeholder: "editor v0.1.0, glance v0.8.6"
+      placeholder: "editor v0.1.0, glance v0.8.8"
     validations:
       required: true
   - type: textarea

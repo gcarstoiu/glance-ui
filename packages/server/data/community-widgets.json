@@ -2,7 +2,7 @@
  "source": "glanceapp/community-widgets",
  "license": "CC0-1.0",
  "commit": "0c643aa3e0b8963b132090ead5d58f8967fbd9fe",
- "glance": "v0.8.6",
+ "glance": "v0.8.8",
  "values": {
   "ABS_LIBRARY": {
    "label": "Library name",

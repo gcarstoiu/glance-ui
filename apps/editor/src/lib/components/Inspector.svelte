@@ -5,7 +5,7 @@
      it (a community widget) shows its title, cache and values instead (ADR-0030). -->
 <script lang="ts">
   import { tick, untrack } from "svelte";
-  import { WIDGETS, isRawWidget, type ModelWidgetT, type WidgetT } from "@glance-editor/model";
+  import { GLANCE_VERSION, WIDGETS, isRawWidget, type ModelWidgetT, type WidgetT } from "@glance-editor/model";
   import {
     canMove, cantMoveInto, childRef, formEntries, listLabel, moveWidget, moveWidgetToList, parentOf, setIn, typeLabel, widgetAt,
     widgetDestinations, widgetName, type ListRef, type WidgetRef,
@@ -145,7 +145,7 @@
     {#if tab === "settings"}
       <div id="panel-settings" role="tabpanel" aria-labelledby="tab-settings" class="stack" style="gap: 4px">
         {#if raw}
-          <div class="notice">Glance v0.8.6 has no widget type “{w.type}”. The widget is kept exactly as written; edit it in the YAML tab.
+          <div class="notice">Glance {GLANCE_VERSION} has no widget type “{w.type}”. The widget is kept exactly as written; edit it in the YAML tab.
             <button type="button" class="btn" onclick={() => (app.insTab = "yaml")}>Open YAML</button></div>
         {:else}
           {#if yamlOnly}

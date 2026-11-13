@@ -121,6 +121,8 @@ async function waitFor(url: string, child: ChildProcess, log: () => string) {
 }
 
 export const fixture = (name: string) => readFileSync(join("test/e2e/fixtures", name), "utf8");
+/** The pinned Glance version (glance.version), as the editor image sets GLANCE_VERSION. */
+export const GLANCE_VERSION = /^GLANCE_VERSION=(\S+)$/m.exec(readFileSync("glance.version", "utf8"))![1]!;
 
 export const test = base.extend<{ opts: EditorOptions; editor: Editor }>({
   opts: [{}, { option: true }],
@@ -159,7 +161,7 @@ export const test = base.extend<{ opts: EditorOptions; editor: Editor }>({
         GLANCE_CONFIG: configPath,
         EDITOR_DATA_DIR: join(dir, "data"),
         GLANCE_BIN: opts.noValidator ? join(dir, "no-glance-here") : process.env.GLANCE_BIN!,
-        GLANCE_VERSION: "v0.8.6",
+        GLANCE_VERSION,
         HOST: "127.0.0.1",
       };
       if (dockerUrl) env.DOCKER_PROXY_URL = dockerUrl;

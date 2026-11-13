@@ -4,6 +4,20 @@ All notable changes are recorded here. The format follows Keep a Changelog; vers
 (process: docs/adr/0007-versioning-and-release-notes.md, accepted).
 
 ## [Unreleased]
+### Changed
+- **The dashboard runs Glance v0.8.8** (was v0.8.6), with Glance's fixes and security fixes since then.
+- **A Reddit widget's Search needs App authentication**, since Reddit changed its API. Glance v0.8.8 refuses the
+  dashboard otherwise: after the update, a dashboard with such a widget doesn't load until Search is cleared or App
+  authentication filled in. The editor still opens and shows which widget it is.
+
+### Added
+- **A warning on Review for links Glance won't keep.** Glance v0.8.8 turns a widget's title link or a container's
+  link into a dead link unless it starts with http://, https:// or mailto:, or is a path on the server.
+- **Brave** can be chosen as the Search widget's engine by name.
+
+### Fixed
+- **Containers that belong to another one** (`glance.parent`) show in the Containers section as Glance shows them:
+  under their parent, also when the widget lists only one category.
 
 ## [1.5.1] - 2026-11-03
 ### Fixed

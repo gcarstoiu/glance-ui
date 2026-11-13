@@ -3,7 +3,7 @@
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import type { DashboardT, ModelWidgetT, WidgetT } from "@glance-editor/model";
+import { GLANCE_VERSION, type DashboardT, type ModelWidgetT, type WidgetT } from "@glance-editor/model";
 import { Editor } from "../src/index.ts";
 import { open, setup, type Setup } from "./helpers.ts";
 
@@ -68,7 +68,7 @@ describe("YAML override (D-12, D-14)", () => {
     const weather = full(d).find((w) => w.type === "weather")!;
     const text = "# typed in the YAML tab\ntype: weather\nlocation: ${WEATHER_CITY} # from the environment\nunits: imperial\nfuture-option: 3 # unknown to v0.8.6\n";
     const r = applyOverride(d, e, weather._id, text);
-    expect(r.notes).toEqual(['"future-option" isn\'t a key Glance v0.8.6 uses here; it is kept as written.']);
+    expect(r.notes).toEqual([`"future-option" isn't a key Glance ${GLANCE_VERSION} uses here; it is kept as written.`]);
     const set = e.setDraft(d);
     expect(set.ok).toBe(true);
     expect(e.widgetText(weather._id)).toBe(text);

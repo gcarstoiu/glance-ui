@@ -192,7 +192,7 @@ const list: WidgetSchema[] = [
         key: "top-period", label: "Top period", kind: "enum", options: ["hour", "day", "week", "month", "year", "all"], default: "day",
         help: "Only used when sorting by Top.",
       },
-      { key: "search", label: "Search", kind: "text" },
+      { key: "search", label: "Search", kind: "text", help: "Works only with App authentication, since Reddit changed its API." },
       ENGAGEMENT,
       {
         key: "app-auth", label: "App authentication", kind: "object", help: "Name, client ID and client secret, all three or none.",
@@ -229,7 +229,7 @@ const list: WidgetSchema[] = [
     fields: [
       {
         key: "search-engine", label: "Search engine", kind: "text", default: "duckduckgo",
-        help: "duckduckgo, google, bing, perplexity, kagi or startpage, or a URL with {QUERY}.",
+        help: "duckduckgo, google, bing, perplexity, kagi, startpage or brave, or a URL with {QUERY}.",
       },
       { key: "new-tab", label: "Open results in a new tab", kind: "bool" },
       { key: "autofocus", label: "Focus the search box on load", kind: "bool" },
@@ -365,7 +365,7 @@ const list: WidgetSchema[] = [
       { key: "hide-by-default", label: "Hide by default", kind: "bool", help: "When on, only containers you switch on below are shown." },
       { key: "format-container-names", label: "Format container names", kind: "bool" },
       { key: "sock-path", label: "Docker socket path", kind: "text", default: "/var/run/docker.sock" },
-      { key: "category", label: "Category", kind: "text", help: "Only containers with this glance.category label." },
+      { key: "category", label: "Category", kind: "text", help: "Only containers with this glance.category label, and the ones under them (glance.parent)." },
       { key: "running-only", label: "Running only", kind: "bool" },
       {
         // `containers` is map[string]map[string]string: per container, the glance.* labels without the prefix.

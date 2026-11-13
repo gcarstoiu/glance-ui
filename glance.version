@@ -1,10 +1,10 @@
 # Pinned Glance image used by CI and the test harness. See docs/adr/0006-glance-version-pinning.md.
 # Change only through a PR that follows the upgrade policy in that ADR.
-GLANCE_VERSION=v0.8.6
-GLANCE_IMAGE=glanceapp/glance:v0.8.6@sha256:9dfb09470b207dcb67ac715994bdb1929374ba3f9c0d7df7462c24adf10fd073
+GLANCE_VERSION=v0.8.8
+GLANCE_IMAGE=glanceapp/glance:v0.8.8@sha256:4d7445bc7971836858ffddee5d7501f1efbabb6e694a45b1dde1a789bb1943bb
 # Commit of the tag above, and the checksum of its docs/glance.yml (the upstream example used as an import fixture;
 # downloaded at test time, not committed, because Glance is AGPL-3.0, see test/upstream-example.sh).
-GLANCE_COMMIT=fbd9c1b6ae0c50ec015843f1bea48c400cddb518
+GLANCE_COMMIT=53aec7f392ca72143870dcb45526ec7c80a68f32
 GLANCE_EXAMPLE_SHA256=7be339f0136e573e3a9ee237ff9f52d69d27ef037517f4b300dc78abdc6f1d38
 # sha256 of Glance's LICENSE at that commit, copied to third_party/glance/LICENSE (shipped in the editor image, ADR-0013).
 GLANCE_LICENSE_SHA256=8486a10c4393cee1c25392769ddd3b2d6c242d6ec7928e1414efff7dfb2f07ef

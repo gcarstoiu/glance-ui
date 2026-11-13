@@ -7,7 +7,7 @@ import { createServer, type Server } from "node:http";
 import type { AddressInfo } from "node:net";
 import { dirname, join } from "node:path";
 import type { Locator, Page } from "@playwright/test";
-import { expect, expectAccessible, expectTargets, fixture, isPhone, mouseDrag, test } from "./fixtures.ts";
+import { GLANCE_VERSION, expect, expectAccessible, expectTargets, fixture, isPhone, mouseDrag, test } from "./fixtures.ts";
 import { shot } from "./shots.ts";
 
 async function importSeed(page: Page, url: string) {
@@ -232,6 +232,34 @@ test.describe("Flow 1 and Flow 6, widget steps", () => {
       await expect(ins.getByText("Use a whole number.")).toBeHidden();
       expect(editor.live()).toBe(before);
     });
+
+    test("ADR-0036: Reddit Search without App authentication blocks Save at its field; a title link Glance drops is a warning", async ({ page, editor }) => {
+      await importSeed(page, editor.url);
+      const state = await (await page.request.get(`${editor.url}/api/state`)).json();
+      state.draft.pages[0].columns[0].widgets.push({ _id: "r", type: "reddit", subreddit: "selfhosted", search: "glance", "title-url": "smb://nas.example/share" });
+      expect((await (await page.request.put(`${editor.url}/api/draft`, { data: state.draft, headers: { origin: editor.url } })).json()).ok).toBe(true);
+      await page.reload();
+      await page.getByRole("button", { name: "Save", exact: true }).click();
+      const review = page.getByRole("dialog", { name: "Review and save" });
+      await expect(review.getByText("1 thing to check (saving still works)")).toBeVisible();
+      await expect(review.getByText("Glance makes this a dead link: it keeps only links that start with http://, https:// or mailto:, or paths on this server.")).toBeVisible();
+      await shot(page, "review-dead-link");
+      await review.getByRole("button", { name: "Check and save" }).click();
+      const problems = page.getByRole("dialog", { name: "Problems" });
+      await expect(problems.getByText("Search works only with App authentication, since Reddit changed its API. Fill in App authentication, or clear Search.")).toBeVisible();
+      await problems.getByRole("button", { name: "Go to" }).click();
+      const ins = inspector(page);
+      await expect(ins.locator(".field.hl")).toContainText("Search");
+      await expect(ins.getByText("Works only with App authentication, since Reddit changed its API.", { exact: true })).toBeVisible();
+      await expect(ins.getByRole("textbox", { name: /^Search/ })).toHaveAttribute("aria-invalid", "true");
+      await shot(page, "reddit-search-app-auth", { fullPage: false });
+      await ins.getByRole("textbox", { name: /^Search/ }).fill("");
+      await closeInspector(page);
+      await save(page);
+      await expect(page.getByRole("heading", { name: /^Version 1 is (live|written)$/ })).toBeVisible();
+      expect(editor.live()).toContain("title-url: smb://nas.example/share");
+      expect(editor.live()).not.toContain("search: glance");
+    });
   });
 });
 
@@ -247,7 +275,7 @@ test.describe("YAML override (D-12): round-trips unknown keys", () => {
     await expect(box).toHaveValue("type: clock\nhour-format: 24h\n");
     await box.fill("type: clock\nhour-format: 12h # changed in YAML\nfuture-option: true\n");
     await ins.getByRole("button", { name: "Apply YAML" }).click();
-    await expect(ins.getByText(`"future-option" isn't a key Glance v0.8.6 uses here; it is kept as written.`)).toBeVisible();
+    await expect(ins.getByText(`"future-option" isn't a key Glance ${GLANCE_VERSION} uses here; it is kept as written.`)).toBeVisible();
     await ins.getByRole("tab", { name: "Settings" }).click();
     await expect(ins.getByText("This widget is edited as YAML, so the form is read-only.")).toBeVisible();
     await expect(ins.getByRole("group", { name: "Hour format" }).getByRole("button", { name: "12h" })).toBeDisabled();
@@ -384,7 +412,7 @@ test.describe("states", () => {
     await page.request.put(`${editor.url}/api/draft`, { data: state.draft, headers: { origin: editor.url } });
     await page.reload();
     await card(page, "Later").getByRole("button", { name: /^Later, / }).click();
-    await expect(inspector(page).getByText("Glance v0.8.6 has no widget type “future-widget”.")).toBeVisible();
+    await expect(inspector(page).getByText(`Glance ${GLANCE_VERSION} has no widget type “future-widget”.`)).toBeVisible();
     await closeInspector(page);
     await card(page, "Docker containers").getByRole("button", { name: /^Docker containers, / }).click();
     await expect(inspector(page).getByText("Can't reach the Docker socket.")).toBeVisible(); // design 03
@@ -401,7 +429,7 @@ test.describe("Community widgets (ADR-0028)", () => {
     await column(page, 2).getByRole("button", { name: "Add widget" }).click();
     const sheet = page.getByRole("dialog", { name: "Add widget" });
     await sheet.getByRole("button", { name: "Community", exact: true }).click();
-    await expect(sheet.getByText(/Made by Glance users and shared under CC0\. Each one was checked with Glance v0\.8\.6/)).toBeVisible();
+    await expect(sheet.getByText(`Made by Glance users and shared under CC0. Each one was checked with Glance ${GLANCE_VERSION}`, { exact: false })).toBeVisible();
     // ADR-0033: marked early alpha above the list.
     await expect(sheet.getByRole("note").filter({ hasText: "Community widgets are in early alpha." })).toContainText("Not every one works out of the box without code");
     await expect(sheet.getByRole("link", { name: "glanceapp/community-widgets" })).toHaveAttribute("href", "https://github.com/glanceapp/community-widgets");
